@@ -16,7 +16,7 @@ const readline = require('readline');
 const config = require('./config');
 
 const sessions = new Map();
-const { startApiServer, broadcast } = require('./apiServer');
+const { startApiServer } = require('./apiServer');
 
 const START_TIME = Date.now();
 
@@ -395,12 +395,6 @@ async function createSession(
                 await sock.requestPairingCode(
                     cleanNumber
                 );
-
-broadcast('pairing', {
-    sessionId,
-    phoneNumber: cleanNumber,
-    code
-});
 
             console.log('');
 
@@ -1002,7 +996,5 @@ start().catch(
         );
     }
 );
-
-
 
 
