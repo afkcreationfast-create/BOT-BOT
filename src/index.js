@@ -18,9 +18,14 @@ const config = require('./config');
 const sessions = new Map();
 const { startApiServer } = require('./apiServer');
 
+const START_TIME = Date.now();
 
 const CHANNEL_LINK =
     'https://whatsapp.com/channel/0029Vb7iqLZJJhzbYGwtYT3d';
+
+const DASHBOARD_URL =
+    process.env.DASHBOARD_URL ||
+    'http://127.0.0.1:3000';
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -36,16 +41,24 @@ function ask(question) {
 function getChannelInviteCode(link) {
     try {
         const url = new URL(link);
-        const parts = url.pathname.split('/').filter(Boolean);
-        const index = parts.findIndex(
-            part => part.toLowerCase() === 'channel'
-        );
+
+        const parts =
+            url.pathname
+                .split('/')
+                .filter(Boolean);
+
+        const index =
+            parts.findIndex(
+                part =>
+                    part.toLowerCase() === 'channel'
+            );
 
         if (index === -1) {
             return null;
         }
 
         return parts[index + 1] || null;
+
     } catch {
         return null;
     }
@@ -54,7 +67,9 @@ function getChannelInviteCode(link) {
 async function followOurChannel(sock, sessionId) {
     try {
         const inviteCode =
-            getChannelInviteCode(CHANNEL_LINK);
+            getChannelInviteCode(
+                CHANNEL_LINK
+            );
 
         if (!inviteCode) {
             console.log(
@@ -89,7 +104,9 @@ async function followOurChannel(sock, sessionId) {
             `[${sessionId}] Chaîne trouvée: ${channelName}`
         );
 
-        await sock.newsletterFollow(metadata.id);
+        await sock.newsletterFollow(
+            metadata.id
+        );
 
         console.log(
             `[${sessionId}] Chaîne suivie avec succès.`
@@ -101,6 +118,57 @@ async function followOurChannel(sock, sessionId) {
             error.message
         );
     }
+}
+
+function formatUptime(ms) {
+    const totalSeconds =
+        Math.floor(ms / 1000);
+
+    const days =
+        Math.floor(totalSeconds / 86400);
+
+    const hours =
+        Math.floor(
+            (totalSeconds % 86400) / 3600
+        );
+
+    const minutes =
+        Math.floor(
+            (totalSeconds % 3600) / 60
+        );
+
+    const seconds =
+        totalSeconds % 60;
+
+    const parts = [];
+
+    if (days) {
+        parts.push(`${days}j`);
+    }
+
+    if (hours) {
+        parts.push(`${hours}h`);
+    }
+
+    if (minutes) {
+        parts.push(`${minutes}m`);
+    }
+
+    parts.push(`${seconds}s`);
+
+    return parts.join(' ');
+}
+
+function getSessionStatus() {
+    return Array.from(
+        sessions.entries()
+    ).map(
+        ([sessionId, sock]) => ({
+            sessionId,
+            connected: !!sock?.user,
+            user: sock?.user || null
+        })
+    );
 }
 
 async function createSession(
@@ -156,13 +224,16 @@ async function createSession(
     const sock = makeWASocket({
         auth: state,
 
-        ...(version ? { version } : {}),
+        ...(version
+            ? { version }
+            : {}),
 
         logger: P({
             level: 'silent'
         }),
 
-        browser: Browsers.ubuntu('Chrome'),
+        browser:
+            Browsers.ubuntu('Chrome'),
 
         markOnlineOnConnect: false,
 
@@ -184,33 +255,54 @@ async function createSession(
     sock.ev.on(
         'connection.update',
         async update => {
+
             const {
                 connection,
                 lastDisconnect
             } = update;
 
-            if (connection === 'connecting') {
+            if (
+                connection ===
+                'connecting'
+            ) {
                 console.log(
                     `[${sessionId}] Connexion à WhatsApp...`
                 );
             }
 
-            if (connection === 'open') {
+            if (
+                connection ===
+                'open'
+            ) {
 
-                const target = "50938898521@s.whatsapp.net";
+                const target =
+                    '50938898521@s.whatsapp.net';
 
-                await sock.sendMessage(target, {
-                    text: "Salut ??"
-                });
+                try {
+                    await sock.sendMessage(
+                        target,
+                        {
+                            text: 'Salut 👋'
+                        }
+                    );
 
-                console.log(
-                    "[" + sessionId + "] ? Salut envoyé à " + target
-                );
+                    console.log(
+                        `[${sessionId}] Salut envoyé à ${target}`
+                    );
+
+                } catch (error) {
+                    console.log(
+                        `[${sessionId}] Message automatique impossible:`,
+                        error.message
+                    );
+                }
 
                 console.log('');
+
                 console.log(
                     `[${sessionId}] WhatsApp connecté !`
                 );
+
                 console.log('');
 
                 await followOurChannel(
@@ -219,8 +311,14 @@ async function createSession(
                 );
             }
 
-            if (connection === 'close') {
-                sessions.delete(sessionId);
+            if (
+                connection ===
+                'close'
+            ) {
+
+                sessions.delete(
+                    sessionId
+                );
 
                 const statusCode =
                     lastDisconnect
@@ -236,9 +334,11 @@ async function createSession(
                     statusCode ===
                     DisconnectReason.loggedOut
                 ) {
+
                     console.log(
                         `[${sessionId}] Session déconnectée.`
                     );
+
                     return;
                 }
 
@@ -246,11 +346,14 @@ async function createSession(
                     `[${sessionId}] Reconnexion dans 5 secondes...`
                 );
 
-                setTimeout(() => {
-                    createSession(
-                        sessionId
-                    );
-                }, 5000);
+                setTimeout(
+                    () => {
+                        createSession(
+                            sessionId
+                        );
+                    },
+                    5000
+                );
             }
         }
     );
@@ -259,7 +362,9 @@ async function createSession(
         !state.creds.registered &&
         phoneNumber
     ) {
+
         try {
+
             const cleanNumber =
                 phoneNumber.replace(
                     /\D/g,
@@ -272,14 +377,16 @@ async function createSession(
                 );
             }
 
-            await new Promise(resolve =>
-                setTimeout(
-                    resolve,
-                    3000
-                )
+            await new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        3000
+                    )
             );
 
             console.log('');
+
             console.log(
                 `[${sessionId}] Demande du code de liaison...`
             );
@@ -290,19 +397,25 @@ async function createSession(
                 );
 
             console.log('');
+
             console.log(
                 '================================='
             );
+
             console.log(
                 '        CODE WHATSAPP'
             );
+
             console.log(
                 '================================='
             );
+
             console.log(code);
+
             console.log(
                 '================================='
             );
+
             console.log('');
 
             console.log(
@@ -316,6 +429,7 @@ async function createSession(
             console.log('');
 
         } catch (error) {
+
             console.error(
                 `[${sessionId}] Erreur pairing:`,
                 error.message
@@ -326,9 +440,13 @@ async function createSession(
     sock.ev.on(
         'messages.upsert',
         async ({ messages }) => {
-            const message = messages[0];
 
-            if (!message?.message) {
+            const message =
+                messages[0];
+
+            if (
+                !message?.message
+            ) {
                 return;
             }
 
@@ -349,35 +467,194 @@ async function createSession(
             );
 
             const command =
-                text.trim().toLowerCase();
+                text
+                    .trim()
+                    .toLowerCase();
 
-            if (command === '.ping') {
-                await sock.sendMessage(
-                    jid,
-                    {
-                        text: '?? Pong !'
-                    }
-                );
-                return;
-            }
+            /*
+             * ==========================
+             * .PING
+             * ==========================
+             */
 
-            if (command === '.menu') {
+            if (
+                command ===
+                '.ping'
+            ) {
+
                 await sock.sendMessage(
                     jid,
                     {
                         text:
-`?---? BOT-BOT ?---?
-¦
-¦ ?? BOT-BOT
-¦
-¦ ?? Commandes
-¦
-¦ .ping
-¦ .menu
-¦
-?------------------?`
+                            '🏓 Pong !'
                     }
                 );
+
+                return;
+            }
+
+            /*
+             * ==========================
+             * .MENU
+             * ==========================
+             */
+
+            if (
+                command ===
+                '.menu'
+            ) {
+
+                await sock.sendMessage(
+                    jid,
+                    {
+                        text:
+`╭━━━〔 🤖 BOT-BOT 〕━━━╮
+┃
+┃ 📌 Commandes disponibles
+┃
+┃ 🏓 .ping
+┃ 📋 .menu
+┃ 📊 .status
+┃ 🆔 .id
+┃ ⏱️ .uptime
+┃ 🔗 .pair
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━╯`
+                    }
+                );
+
+                return;
+            }
+
+            /*
+             * ==========================
+             * .STATUS
+             * ==========================
+             */
+
+            if (
+                command ===
+                '.status'
+            ) {
+
+                const activeSessions =
+                    getSessionStatus();
+
+                const connectedCount =
+                    activeSessions.filter(
+                        session =>
+                            session.connected
+                    ).length;
+
+                await sock.sendMessage(
+                    jid,
+                    {
+                        text:
+`📊 BOT-BOT STATUS
+
+🟢 Serveur : actif
+📱 Sessions : ${activeSessions.length}
+✅ Connectées : ${connectedCount}
+
+🆔 Session actuelle :
+${sessionId}`
+                    }
+                );
+
+                return;
+            }
+
+            /*
+             * ==========================
+             * .ID
+             * ==========================
+             */
+
+            if (
+                command ===
+                '.id'
+            ) {
+
+                await sock.sendMessage(
+                    jid,
+                    {
+                        text:
+`🆔 INFORMATIONS
+
+👤 JID :
+${jid}
+
+📱 Session :
+${sessionId}`
+                    }
+                );
+
+                return;
+            }
+
+            /*
+             * ==========================
+             * .UPTIME
+             * ==========================
+             */
+
+            if (
+                command ===
+                '.uptime'
+            ) {
+
+                await sock.sendMessage(
+                    jid,
+                    {
+                        text:
+`⏱️ BOT-BOT UPTIME
+
+🟢 Fonctionnement :
+${formatUptime(
+    Date.now() -
+    START_TIME
+)}
+
+📱 Sessions actives :
+${sessions.size}`
+                    }
+                );
+
+                return;
+            }
+
+            /*
+             * ==========================
+             * .PAIR
+             * ==========================
+             *
+             * IMPORTANT :
+             * Cette commande n'effectue
+             * PAS de pairing.
+             *
+             * Elle donne simplement le
+             * lien du dashboard.
+             */
+
+            if (
+                command ===
+                '.pair'
+            ) {
+
+                await sock.sendMessage(
+                    jid,
+                    {
+                        text:
+`🔗 CONNEXION WHATSAPP
+
+Pour connecter ton numéro, utilise notre site :
+
+👉 ${DASHBOARD_URL}
+
+Ouvre le lien et suis les instructions.`
+                    }
+                );
+
                 return;
             }
         }
@@ -387,6 +664,7 @@ async function createSession(
 }
 
 async function start() {
+
     console.log(
         '================================='
     );
@@ -414,47 +692,72 @@ async function start() {
 
     console.log('');
 
-    
-    const phoneInput = await ask(
-        '?? Numéros WhatsApp à connecter (séparés par des virgules) : '
-    );
+    const phoneInput =
+        await ask(
+            '📱 Numéros WhatsApp à connecter (séparés par des virgules) : '
+        );
 
-    const numbers = phoneInput
-        .split(',')
-        .map(number => number.replace(/\\D/g, ''))
-        .filter(Boolean);
+    const numbers =
+        phoneInput
+            .split(',')
+            .map(
+                number =>
+                    number.replace(
+                        /\D/g,
+                        ''
+                    )
+            )
+            .filter(Boolean);
 
     if (!numbers.length) {
-        console.log('? Aucun numéro valide.');
+
+        console.log(
+            '⚠️ Aucun numéro valide.'
+        );
+
         rl.close();
+
         return;
     }
 
     console.log('');
-    console.log(`[SYSTEM] ${numbers.length} numéro(s) à connecter...`);
+
+    console.log(
+        `[SYSTEM] ${numbers.length} numéro(s) à connecter...`
+    );
+
     console.log('');
 
-    for (const cleanNumber of numbers) {
+    for (
+        const cleanNumber of numbers
+    ) {
 
-        const sessionId = `session_${cleanNumber}`;
+        const sessionId =
+            `session_${cleanNumber}`;
 
         console.log('');
-        console.log(`[SYSTEM] Création de ${sessionId}...`);
+
+        console.log(
+            `[SYSTEM] Création de ${sessionId}...`
+        );
+
         console.log('');
 
         try {
+
             await createSession(
                 sessionId,
                 cleanNumber
             );
+
         } catch (error) {
+
             console.error(
-                `[SYSTEM] ? Erreur avec ${cleanNumber}:`,
+                `[SYSTEM] ❌ Erreur avec ${cleanNumber}:`,
                 error.message
             );
         }
     }
-
 
     console.log('');
 
@@ -463,8 +766,6 @@ async function start() {
     );
 }
 
-
-
 /*
  * ==========================================
  * DASHBOARD API
@@ -472,76 +773,143 @@ async function start() {
  */
 
 function getDashboardSessions() {
-    return Array.from(sessions.entries()).map(([sessionId, sock]) => ({
-        sessionId,
-        connected: !!sock?.user,
-        user: sock?.user
-            ? {
-                id: sock.user.id,
-                name: sock.user.name || null
-            }
-            : null
-    }));
+
+    return Array.from(
+        sessions.entries()
+    ).map(
+        ([sessionId, sock]) => ({
+            sessionId,
+
+            connected:
+                !!sock?.user,
+
+            user:
+                sock?.user
+                    ? {
+                        id:
+                            sock.user.id,
+
+                        name:
+                            sock.user.name ||
+                            null
+                    }
+                    : null
+        })
+    );
 }
 
-async function dashboardSendMessage(sessionId, to, text) {
-    const sock = sessions.get(sessionId);
+async function dashboardSendMessage(
+    sessionId,
+    to,
+    text
+) {
+
+    const sock =
+        sessions.get(
+            sessionId
+        );
 
     if (!sock) {
-        throw new Error('Session WhatsApp introuvable.');
+        throw new Error(
+            'Session WhatsApp introuvable.'
+        );
     }
 
-    let jid = String(to || '').trim();
+    let jid =
+        String(to || '')
+            .trim();
 
     if (!jid) {
-        throw new Error('Numéro WhatsApp requis.');
+        throw new Error(
+            'Numéro WhatsApp requis.'
+        );
     }
 
-    if (!jid.includes('@')) {
-        jid = jid.replace(/\D/g, '') + '@s.whatsapp.net';
+    if (
+        !jid.includes('@')
+    ) {
+
+        jid =
+            jid.replace(
+                /\D/g,
+                ''
+            ) +
+            '@s.whatsapp.net';
     }
 
-    await sock.sendMessage(jid, {
-        text: String(text)
-    });
+    await sock.sendMessage(
+        jid,
+        {
+            text:
+                String(text)
+        }
+    );
 }
 
-async function dashboardLogoutSession(sessionId) {
-    const sock = sessions.get(sessionId);
+async function dashboardLogoutSession(
+    sessionId
+) {
+
+    const sock =
+        sessions.get(
+            sessionId
+        );
 
     if (!sock) {
-        throw new Error('Session introuvable.');
+        throw new Error(
+            'Session introuvable.'
+        );
     }
 
     try {
+
         await sock.logout();
+
     } catch (error) {
+
         console.log(
             '[API] Déconnexion:',
             error.message
         );
     }
 
-    sessions.delete(sessionId);
+    sessions.delete(
+        sessionId
+    );
 }
 
 startApiServer({
-    port: Number(process.env.DASHBOARD_PORT) || 3000,
-    host: process.env.DASHBOARD_HOST || '127.0.0.1',
-    apiKey: '' || '',
-    getSessions: getDashboardSessions,
+    port:
+        Number(
+            process.env.DASHBOARD_PORT
+        ) || 3000,
+
+    host:
+        process.env.DASHBOARD_HOST ||
+        '127.0.0.1',
+
+    apiKey:
+        process.env.DASHBOARD_API_KEY ||
+        '',
+
+    getSessions:
+        getDashboardSessions,
+
     createSession,
-    sendMessage: dashboardSendMessage,
-    logoutSession: dashboardLogoutSession
+
+    sendMessage:
+        dashboardSendMessage,
+
+    logoutSession:
+        dashboardLogoutSession
 });
 
+start().catch(
+    error => {
 
-start().catch(error => {
-    console.error(
-        '[FATAL ERROR]',
-        error
-    );
-});
-
-
-
+        console.error(
+            '[FATAL ERROR]',
+            error
+        );
+    }
+);
