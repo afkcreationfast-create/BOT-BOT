@@ -342,15 +342,22 @@ async function createSession(
                     return;
                 }
 
+                if (!state.creds.registered) {
+                    console.log(
+                        `[${sessionId}] Pairing non terminé. Pas de reconnexion automatique.`
+                    );
+                    return;
+                }
+
                 console.log(
                     `[${sessionId}] Reconnexion dans 5 secondes...`
                 );
 
                 setTimeout(
                     () => {
-                        createSession(
-                            sessionId
-                        );
+                        if (!sessions.has(sessionId)) {
+                            createSession(sessionId);
+                        }
                     },
                     5000
                 );
@@ -1002,6 +1009,7 @@ start().catch(
         );
     }
 );
+
 
 
 
