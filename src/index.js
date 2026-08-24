@@ -477,7 +477,93 @@ async function createSession(
              * ==========================
              */
 
-            if (
+                        if (command === '.help') {
+                await sock.sendMessage(jid, {
+                    text:
+`╭━━━〔 🤖 BOT-BOT 〕━━━╮
+┃
+┃ 📋 COMMANDES
+┃
+┃ 🏓 .ping
+┃ ℹ️ .info
+┃ 🆔 .id
+┃ 🕐 .time
+┃ ⏱️ .uptime
+┃ 👑 .owner
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━╯`
+                });
+                return;
+            }
+
+            if (command === '.info') {
+                await sock.sendMessage(jid, {
+                    text:
+`╭━━━〔 🤖 BOT-BOT INFO 〕━━━╮
+┃
+┃ 🤖 Bot : BOT-BOT
+┃ 🟢 Statut : En ligne
+┃ 📱 Session : ${sessionId}
+┃
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯`
+                });
+                return;
+            }
+
+            if (command === '.id') {
+                await sock.sendMessage(jid, {
+                    text:
+`🆔 INFORMATIONS DU CHAT
+
+JID :
+${jid}
+
+Session :
+${sessionId}`
+                });
+                return;
+            }
+
+            if (command === '.time') {
+                const now = new Date();
+
+                await sock.sendMessage(jid, {
+                    text:
+`🕐 HEURE DU SERVEUR
+
+${now.toLocaleString('fr-FR')}`
+                });
+                return;
+            }
+
+            if (command === '.uptime') {
+                await sock.sendMessage(jid, {
+                    text:
+`⏱️ BOT-BOT UPTIME
+
+Le bot fonctionne depuis :
+${formatUptime(Date.now() - START_TIME)}
+
+📱 Sessions actives :
+${sessions.size}`
+                });
+                return;
+            }
+
+            if (command === '.owner') {
+                await sock.sendMessage(jid, {
+                    text:
+`👑 PROPRIÉTAIRE
+
+🤖 BOT-BOT
+
+Pour contacter le propriétaire,
+utilise les informations fournies
+par l'administrateur du bot.`
+                });
+                return;
+            }
+if (
                 command ===
                 '.ping'
             ) {
@@ -880,13 +966,10 @@ async function dashboardLogoutSession(
 
 startApiServer({
     port:
-        Number(
-            process.env.DASHBOARD_PORT
-        ) || 3000,
+        Number(process.env.PORT || process.env.DASHBOARD_PORT) || 3000,
 
     host:
-        process.env.DASHBOARD_HOST ||
-        '127.0.0.1',
+        process.env.DASHBOARD_HOST || '0.0.0.0',
 
     apiKey:
         process.env.DASHBOARD_API_KEY ||
@@ -913,3 +996,5 @@ start().catch(
         );
     }
 );
+
+
