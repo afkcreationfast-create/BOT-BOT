@@ -4,3 +4,6 @@ src/sessions/
 .env
 node_modules/
 src/sessions/
+
+.env
+.env.local

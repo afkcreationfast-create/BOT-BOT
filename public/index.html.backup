@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BOT-BOT Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">🤖</div>
+                <div>
+                    <strong>BOT-BOT</strong>
+                    <span>WhatsApp Manager</span>
+                </div>
+            </div>
+
+            <nav>
+                <button class="nav-item active" data-section="overview">⌂ <span>Dashboard</span></button>
+                <button class="nav-item" data-section="sessions">◉ <span>WhatsApp</span></button>
+                <button class="nav-item" data-section="messages">✉ <span>Messages</span></button>
+                <button class="nav-item" data-section="logs">≡ <span>Logs</span></button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <span class="status-dot" id="apiDot"></span>
+                <span id="apiStatus">API en attente...</span>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <div>
+                    <div class="eyebrow">CONTROL CENTER</div>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <button class="ghost-button" id="refreshButton">↻ Actualiser</button>
+            </header>
+
+            <section id="overview" class="section active">
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <span>Sessions</span>
+                        <strong id="totalSessions">0</strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Connectées</span>
+                        <strong id="connectedSessions">0</strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>En attente</span>
+                        <strong id="pairingSessions">0</strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Uptime</span>
+                        <strong id="uptime">0s</strong>
+                    </article>
+                </div>
+
+                <div class="grid-2">
+                    <article class="panel">
+                        <div class="panel-heading">
+                            <div>
+                                <h2>Ajouter un WhatsApp</h2>
+                                <p>Crée une nouvelle session avec un code de liaison.</p>
+                            </div>
+                        </div>
+
+                        <form id="addSessionForm" class="form">
+                            <label>
+                                Numéro WhatsApp
+                                <input id="phoneNumber" name="phoneNumber" placeholder="509XXXXXXXX" inputmode="numeric" required>
+                            </label>
+                            <button class="primary-button" type="submit">+ Connecter</button>
+                        </form>
+
+                        <div id="pairingResult" class="pairing hidden">
+                            <span>CODE DE LIAISON</span>
+                            <strong id="pairingCode">--------</strong>
+                            <small>WhatsApp → Appareils connectés → Connecter avec un numéro de téléphone</small>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-heading">
+                            <div>
+                                <h2>Activité récente</h2>
+                                <p>Les derniers événements du serveur apparaissent ici.</p>
+                            </div>
+                        </div>
+                        <div id="activityList" class="activity-list">
+                            <div class="empty">Aucune activité pour le moment.</div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="sessions" class="section">
+                <div class="section-heading">
+                    <div>
+                        <div class="eyebrow">WHATSAPP</div>
+                        <h2>Sessions</h2>
+                    </div>
+                </div>
+                <div id="sessionsGrid" class="sessions-grid"></div>
+            </section>
+
+            <section id="messages" class="section">
+                <div class="section-heading">
+                    <div>
+                        <div class="eyebrow">MESSAGES</div>
+                        <h2>Envoyer un message</h2>
+                    </div>
+                </div>
+
+                <article class="panel">
+                    <form id="sendMessageForm" class="form grid-form">
+                        <label>
+                            Session
+                            <select id="sendSession" required></select>
+                        </label>
+                        <label>
+                            Destinataire
+                            <input id="sendTo" placeholder="509XXXXXXXX" required>
+                        </label>
+                        <label class="full">
+                            Message
+                            <textarea id="sendText" rows="5" placeholder="Écris ton message..." required></textarea>
+                        </label>
+                        <button class="primary-button" type="submit">Envoyer</button>
+                    </form>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h2>Messages reçus</h2>
+                            <p>Flux en direct des messages détectés par BOT-BOT.</p>
+                        </div>
+                    </div>
+                    <div id="messageList" class="message-list"></div>
+                </article>
+            </section>
+
+            <section id="logs" class="section">
+                <div class="section-heading">
+                    <div>
+                        <div class="eyebrow">SERVER</div>
+                        <h2>Logs</h2>
+                    </div>
+                    <button class="ghost-button" id="clearLogs">Effacer</button>
+                </div>
+                <pre id="logOutput" class="log-output"></pre>
+            </section>
+
+            <div id="toast" class="toast"></div>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

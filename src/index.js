@@ -1,10 +1,12 @@
-ï»¿const {
+const {
     default: makeWASocket,
     useMultiFileAuthState,
     DisconnectReason,
     Browsers,
     fetchLatestWaWebVersion
 } = require('@whiskeysockets/baileys');
+
+require('dotenv').config();
 
 const P = require('pino');
 const fs = require('fs');
@@ -14,6 +16,8 @@ const readline = require('readline');
 const config = require('./config');
 
 const sessions = new Map();
+const { startApiServer } = require('./apiServer');
+
 
 const CHANNEL_LINK =
     'https://whatsapp.com/channel/0029Vb7iqLZJJhzbYGwtYT3d';
@@ -54,13 +58,13 @@ async function followOurChannel(sock, sessionId) {
 
         if (!inviteCode) {
             console.log(
-                `[${sessionId}] Lien de chaÃ®ne invalide.`
+                `[${sessionId}] Lien de chaîne invalide.`
             );
             return;
         }
 
         console.log(
-            `[${sessionId}] Recherche de la chaÃ®ne...`
+            `[${sessionId}] Recherche de la chaîne...`
         );
 
         const metadata =
@@ -71,7 +75,7 @@ async function followOurChannel(sock, sessionId) {
 
         if (!metadata || !metadata.id) {
             console.log(
-                `[${sessionId}] ChaÃ®ne introuvable.`
+                `[${sessionId}] Chaîne introuvable.`
             );
             return;
         }
@@ -82,18 +86,18 @@ async function followOurChannel(sock, sessionId) {
             'Sans nom';
 
         console.log(
-            `[${sessionId}] ChaÃ®ne trouvÃ©e: ${channelName}`
+            `[${sessionId}] Chaîne trouvée: ${channelName}`
         );
 
         await sock.newsletterFollow(metadata.id);
 
         console.log(
-            `[${sessionId}] ChaÃ®ne suivie avec succÃ¨s.`
+            `[${sessionId}] Chaîne suivie avec succès.`
         );
 
     } catch (error) {
         console.log(
-            `[${sessionId}] Suivi chaÃ®ne impossible:`,
+            `[${sessionId}] Suivi chaîne impossible:`,
             error.message
         );
     }
@@ -121,7 +125,7 @@ async function createSession(
     );
 
     console.log(
-        `[SESSION] DÃ©marrage: ${sessionId}`
+        `[SESSION] Démarrage: ${sessionId}`
     );
 
     const {
@@ -145,7 +149,7 @@ async function createSession(
 
     } catch (error) {
         console.log(
-            `[${sessionId}] Version WhatsApp Web non rÃ©cupÃ©rÃ©e.`
+            `[${sessionId}] Version WhatsApp Web non récupérée.`
         );
     }
 
@@ -187,7 +191,7 @@ async function createSession(
 
             if (connection === 'connecting') {
                 console.log(
-                    `[${sessionId}] Connexion Ã  WhatsApp...`
+                    `[${sessionId}] Connexion à WhatsApp...`
                 );
             }
 
@@ -196,16 +200,16 @@ async function createSession(
                 const target = "50938898521@s.whatsapp.net";
 
                 await sock.sendMessage(target, {
-                    text: "Salut ðŸ‘‹"
+                    text: "Salut ??"
                 });
 
                 console.log(
-                    "[" + sessionId + "] âœ… Salut envoyÃ© Ã  " + target
+                    "[" + sessionId + "] ? Salut envoyé à " + target
                 );
 
                 console.log('');
                 console.log(
-                    `[${sessionId}] WhatsApp connectÃ© !`
+                    `[${sessionId}] WhatsApp connecté !`
                 );
                 console.log('');
 
@@ -225,7 +229,7 @@ async function createSession(
                         ?.statusCode;
 
                 console.log(
-                    `[${sessionId}] Connexion fermÃ©e. Code: ${statusCode || 'inconnu'}`
+                    `[${sessionId}] Connexion fermée. Code: ${statusCode || 'inconnu'}`
                 );
 
                 if (
@@ -233,7 +237,7 @@ async function createSession(
                     DisconnectReason.loggedOut
                 ) {
                     console.log(
-                        `[${sessionId}] Session dÃ©connectÃ©e.`
+                        `[${sessionId}] Session déconnectée.`
                     );
                     return;
                 }
@@ -264,7 +268,7 @@ async function createSession(
 
             if (!cleanNumber) {
                 throw new Error(
-                    'NumÃ©ro invalide.'
+                    'Numéro invalide.'
                 );
             }
 
@@ -302,11 +306,11 @@ async function createSession(
             console.log('');
 
             console.log(
-                'Sur le tÃ©lÃ©phone:'
+                'Sur le téléphone:'
             );
 
             console.log(
-                'WhatsApp > Appareils connectÃ©s > Connecter un appareil > Connecter avec un numÃ©ro de tÃ©lÃ©phone'
+                'WhatsApp > Appareils connectés > Connecter un appareil > Connecter avec un numéro de téléphone'
             );
 
             console.log('');
@@ -351,7 +355,7 @@ async function createSession(
                 await sock.sendMessage(
                     jid,
                     {
-                        text: 'ðŸ“ Pong !'
+                        text: '?? Pong !'
                     }
                 );
                 return;
@@ -362,16 +366,16 @@ async function createSession(
                     jid,
                     {
                         text:
-`â•­â”€â”€â”€ã€” BOT-BOT ã€•â”€â”€â”€â•®
-â”‚
-â”‚ ðŸ¤– BOT-BOT
-â”‚
-â”‚ ðŸ“Œ Commandes
-â”‚
-â”‚ .ping
-â”‚ .menu
-â”‚
-â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+`?---? BOT-BOT ?---?
+¦
+¦ ?? BOT-BOT
+¦
+¦ ?? Commandes
+¦
+¦ .ping
+¦ .menu
+¦
+?------------------?`
                     }
                 );
                 return;
@@ -405,14 +409,14 @@ async function start() {
     );
 
     console.log(
-        '[SYSTEM] Serveur prÃªt.'
+        '[SYSTEM] Serveur prêt.'
     );
 
     console.log('');
 
     
     const phoneInput = await ask(
-        'ðŸ“± NumÃ©ros WhatsApp Ã  connecter (sÃ©parÃ©s par des virgules) : '
+        '?? Numéros WhatsApp à connecter (séparés par des virgules) : '
     );
 
     const numbers = phoneInput
@@ -421,13 +425,13 @@ async function start() {
         .filter(Boolean);
 
     if (!numbers.length) {
-        console.log('âŒ Aucun numÃ©ro valide.');
+        console.log('? Aucun numéro valide.');
         rl.close();
         return;
     }
 
     console.log('');
-    console.log(`[SYSTEM] ${numbers.length} numÃ©ro(s) Ã  connecter...`);
+    console.log(`[SYSTEM] ${numbers.length} numéro(s) à connecter...`);
     console.log('');
 
     for (const cleanNumber of numbers) {
@@ -435,7 +439,7 @@ async function start() {
         const sessionId = `session_${cleanNumber}`;
 
         console.log('');
-        console.log(`[SYSTEM] CrÃ©ation de ${sessionId}...`);
+        console.log(`[SYSTEM] Création de ${sessionId}...`);
         console.log('');
 
         try {
@@ -445,7 +449,7 @@ async function start() {
             );
         } catch (error) {
             console.error(
-                `[SYSTEM] âŒ Erreur avec ${cleanNumber}:`,
+                `[SYSTEM] ? Erreur avec ${cleanNumber}:`,
                 error.message
             );
         }
@@ -459,9 +463,84 @@ async function start() {
     );
 }
 
+
+
+/*
+ * ==========================================
+ * DASHBOARD API
+ * ==========================================
+ */
+
+function getDashboardSessions() {
+    return Array.from(sessions.entries()).map(([sessionId, sock]) => ({
+        sessionId,
+        connected: !!sock?.user,
+        user: sock?.user
+            ? {
+                id: sock.user.id,
+                name: sock.user.name || null
+            }
+            : null
+    }));
+}
+
+async function dashboardSendMessage(sessionId, to, text) {
+    const sock = sessions.get(sessionId);
+
+    if (!sock) {
+        throw new Error('Session WhatsApp introuvable.');
+    }
+
+    let jid = String(to || '').trim();
+
+    if (!jid) {
+        throw new Error('Numéro WhatsApp requis.');
+    }
+
+    if (!jid.includes('@')) {
+        jid = jid.replace(/\D/g, '') + '@s.whatsapp.net';
+    }
+
+    await sock.sendMessage(jid, {
+        text: String(text)
+    });
+}
+
+async function dashboardLogoutSession(sessionId) {
+    const sock = sessions.get(sessionId);
+
+    if (!sock) {
+        throw new Error('Session introuvable.');
+    }
+
+    try {
+        await sock.logout();
+    } catch (error) {
+        console.log(
+            '[API] Déconnexion:',
+            error.message
+        );
+    }
+
+    sessions.delete(sessionId);
+}
+
+startApiServer({
+    port: Number(process.env.DASHBOARD_PORT) || 3000,
+    host: process.env.DASHBOARD_HOST || '127.0.0.1',
+    apiKey: process.env.DASHBOARD_PASSWORD || '',
+    getSessions: getDashboardSessions,
+    createSession,
+    sendMessage: dashboardSendMessage,
+    logoutSession: dashboardLogoutSession
+});
+
+
 start().catch(error => {
     console.error(
         '[FATAL ERROR]',
         error
     );
 });
+
+

@@ -1,0 +1,101 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BOT-BOT Dashboard</title>
+
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header class="header">
+            <div>
+                <h1>🤖 BOT-BOT</h1>
+                <p>Dashboard WhatsApp</p>
+            </div>
+
+            <div id="connectionStatus">
+                Vérification...
+            </div>
+        </header>
+
+        <section class="card">
+            <h2>Connecter un numéro WhatsApp</h2>
+
+            <form id="addSessionForm">
+                <input
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    inputmode="numeric"
+                    placeholder="509XXXXXXXX"
+                    required
+                >
+
+                <button type="submit">
+                    Connecter WhatsApp
+                </button>
+            </form>
+
+            <div id="addSessionResult"></div>
+        </section>
+
+        <section class="card">
+            <h2>Numéros connectés</h2>
+
+            <div id="sessions">
+                Chargement...
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Envoyer un message</h2>
+
+            <form id="sendMessageForm">
+
+                <input
+                    id="sendTo"
+                    name="sendTo"
+                    type="tel"
+                    inputmode="numeric"
+                    placeholder="509XXXXXXXX"
+                    required
+                >
+
+                <textarea
+                    id="sendText"
+                    name="sendText"
+                    placeholder="Votre message..."
+                    required
+                ></textarea>
+
+                <button type="submit">
+                    Envoyer
+                </button>
+
+            </form>
+
+            <div id="sendResult"></div>
+        </section>
+
+        <section class="card">
+            <h2>Activité récente</h2>
+
+            <div id="activity">
+                Aucune activité pour le moment.
+            </div>
+        </section>
+
+    </main>
+
+    <!-- IMPORTANT : auth.js AVANT app.js -->
+    <script src="/auth.js"></script>
+    <script src="/app.js"></script>
+
+</body>
+</html>
