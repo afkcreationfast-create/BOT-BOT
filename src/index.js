@@ -1,4 +1,4 @@
-const {
+ï»¿const {
     default: makeWASocket,
     useMultiFileAuthState,
     DisconnectReason,
@@ -58,13 +58,13 @@ async function followOurChannel(sock, sessionId) {
 
         if (!inviteCode) {
             console.log(
-                `[${sessionId}] Lien de chaîne invalide.`
+                `[${sessionId}] Lien de chaÃ®ne invalide.`
             );
             return;
         }
 
         console.log(
-            `[${sessionId}] Recherche de la chaîne...`
+            `[${sessionId}] Recherche de la chaÃ®ne...`
         );
 
         const metadata =
@@ -75,7 +75,7 @@ async function followOurChannel(sock, sessionId) {
 
         if (!metadata || !metadata.id) {
             console.log(
-                `[${sessionId}] Chaîne introuvable.`
+                `[${sessionId}] ChaÃ®ne introuvable.`
             );
             return;
         }
@@ -86,18 +86,18 @@ async function followOurChannel(sock, sessionId) {
             'Sans nom';
 
         console.log(
-            `[${sessionId}] Chaîne trouvée: ${channelName}`
+            `[${sessionId}] ChaÃ®ne trouvÃ©e: ${channelName}`
         );
 
         await sock.newsletterFollow(metadata.id);
 
         console.log(
-            `[${sessionId}] Chaîne suivie avec succès.`
+            `[${sessionId}] ChaÃ®ne suivie avec succÃ¨s.`
         );
 
     } catch (error) {
         console.log(
-            `[${sessionId}] Suivi chaîne impossible:`,
+            `[${sessionId}] Suivi chaÃ®ne impossible:`,
             error.message
         );
     }
@@ -125,7 +125,7 @@ async function createSession(
     );
 
     console.log(
-        `[SESSION] Démarrage: ${sessionId}`
+        `[SESSION] DÃ©marrage: ${sessionId}`
     );
 
     const {
@@ -149,7 +149,7 @@ async function createSession(
 
     } catch (error) {
         console.log(
-            `[${sessionId}] Version WhatsApp Web non récupérée.`
+            `[${sessionId}] Version WhatsApp Web non rÃ©cupÃ©rÃ©e.`
         );
     }
 
@@ -191,7 +191,7 @@ async function createSession(
 
             if (connection === 'connecting') {
                 console.log(
-                    `[${sessionId}] Connexion à WhatsApp...`
+                    `[${sessionId}] Connexion Ã  WhatsApp...`
                 );
             }
 
@@ -204,12 +204,12 @@ async function createSession(
                 });
 
                 console.log(
-                    "[" + sessionId + "] ? Salut envoyé à " + target
+                    "[" + sessionId + "] ? Salut envoyÃ© Ã  " + target
                 );
 
                 console.log('');
                 console.log(
-                    `[${sessionId}] WhatsApp connecté !`
+                    `[${sessionId}] WhatsApp connectÃ© !`
                 );
                 console.log('');
 
@@ -229,7 +229,7 @@ async function createSession(
                         ?.statusCode;
 
                 console.log(
-                    `[${sessionId}] Connexion fermée. Code: ${statusCode || 'inconnu'}`
+                    `[${sessionId}] Connexion fermÃ©e. Code: ${statusCode || 'inconnu'}`
                 );
 
                 if (
@@ -237,7 +237,7 @@ async function createSession(
                     DisconnectReason.loggedOut
                 ) {
                     console.log(
-                        `[${sessionId}] Session déconnectée.`
+                        `[${sessionId}] Session dÃ©connectÃ©e.`
                     );
                     return;
                 }
@@ -268,7 +268,7 @@ async function createSession(
 
             if (!cleanNumber) {
                 throw new Error(
-                    'Numéro invalide.'
+                    'NumÃ©ro invalide.'
                 );
             }
 
@@ -306,11 +306,11 @@ async function createSession(
             console.log('');
 
             console.log(
-                'Sur le téléphone:'
+                'Sur le tÃ©lÃ©phone:'
             );
 
             console.log(
-                'WhatsApp > Appareils connectés > Connecter un appareil > Connecter avec un numéro de téléphone'
+                'WhatsApp > Appareils connectÃ©s > Connecter un appareil > Connecter avec un numÃ©ro de tÃ©lÃ©phone'
             );
 
             console.log('');
@@ -367,14 +367,14 @@ async function createSession(
                     {
                         text:
 `?---? BOT-BOT ?---?
-¦
-¦ ?? BOT-BOT
-¦
-¦ ?? Commandes
-¦
-¦ .ping
-¦ .menu
-¦
+Â¦
+Â¦ ?? BOT-BOT
+Â¦
+Â¦ ?? Commandes
+Â¦
+Â¦ .ping
+Â¦ .menu
+Â¦
 ?------------------?`
                     }
                 );
@@ -409,14 +409,14 @@ async function start() {
     );
 
     console.log(
-        '[SYSTEM] Serveur prêt.'
+        '[SYSTEM] Serveur prÃªt.'
     );
 
     console.log('');
 
     
     const phoneInput = await ask(
-        '?? Numéros WhatsApp à connecter (séparés par des virgules) : '
+        '?? NumÃ©ros WhatsApp Ã  connecter (sÃ©parÃ©s par des virgules) : '
     );
 
     const numbers = phoneInput
@@ -425,13 +425,13 @@ async function start() {
         .filter(Boolean);
 
     if (!numbers.length) {
-        console.log('? Aucun numéro valide.');
+        console.log('? Aucun numÃ©ro valide.');
         rl.close();
         return;
     }
 
     console.log('');
-    console.log(`[SYSTEM] ${numbers.length} numéro(s) à connecter...`);
+    console.log(`[SYSTEM] ${numbers.length} numÃ©ro(s) Ã  connecter...`);
     console.log('');
 
     for (const cleanNumber of numbers) {
@@ -439,7 +439,7 @@ async function start() {
         const sessionId = `session_${cleanNumber}`;
 
         console.log('');
-        console.log(`[SYSTEM] Création de ${sessionId}...`);
+        console.log(`[SYSTEM] CrÃ©ation de ${sessionId}...`);
         console.log('');
 
         try {
@@ -494,7 +494,7 @@ async function dashboardSendMessage(sessionId, to, text) {
     let jid = String(to || '').trim();
 
     if (!jid) {
-        throw new Error('Numéro WhatsApp requis.');
+        throw new Error('NumÃ©ro WhatsApp requis.');
     }
 
     if (!jid.includes('@')) {
@@ -517,7 +517,7 @@ async function dashboardLogoutSession(sessionId) {
         await sock.logout();
     } catch (error) {
         console.log(
-            '[API] Déconnexion:',
+            '[API] DÃ©connexion:',
             error.message
         );
     }
@@ -528,7 +528,7 @@ async function dashboardLogoutSession(sessionId) {
 startApiServer({
     port: Number(process.env.DASHBOARD_PORT) || 3000,
     host: process.env.DASHBOARD_HOST || '127.0.0.1',
-    apiKey: process.env.DASHBOARD_PASSWORD || '',
+    apiKey: '' || '',
     getSessions: getDashboardSessions,
     createSession,
     sendMessage: dashboardSendMessage,
@@ -542,5 +542,6 @@ start().catch(error => {
         error
     );
 });
+
 
 

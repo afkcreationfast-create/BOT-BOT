@@ -1,4 +1,4 @@
-﻿const state = {
+const state = {
     sessions: [],
     messages: [],
     logs: []
@@ -24,12 +24,12 @@ function toast(message) {
 
 function statusLabel(status) {
     const labels = {
-        connected: 'ConnectÃ©',
+        connected: 'Connecté',
         pairing: 'Code requis',
         connecting: 'Connexion',
         reconnecting: 'Reconnexion',
         error: 'Erreur',
-        logged_out: 'DÃ©connectÃ©',
+        logged_out: 'Déconnecté',
         offline: 'Hors ligne'
     };
     return labels[status] || status;
@@ -78,8 +78,8 @@ function renderSessions() {
         grid.innerHTML = '<div class="empty">Aucune session WhatsApp.</div>';
     } else {
         grid.innerHTML = state.sessions.map(session => {
-            const phone = session.phoneNumber || 'NumÃ©ro inconnu';
-            const user = session.user?.name || session.user?.id || 'â€”';
+            const phone = session.phoneNumber || 'Numéro inconnu';
+            const user = session.user?.name || session.user?.id || '—';
             const pairing = session.pairingCode
                 ? `<div class="pairing"><span>CODE</span><strong>${escapeHtml(session.pairingCode)}</strong><small>Entre ce code dans WhatsApp.</small></div>`
                 : '';
@@ -92,16 +92,16 @@ function renderSessions() {
                     </div>
 
                     <div class="session-meta">
-                        <div>NumÃ©ro : <strong>${escapeHtml(phone)}</strong></div>
+                        <div>Numéro : <strong>${escapeHtml(phone)}</strong></div>
                         <div>Compte : <strong>${escapeHtml(user)}</strong></div>
-                        <div>Dernier message : <strong>${escapeHtml(session.lastMessage?.text || 'â€”')}</strong></div>
+                        <div>Dernier message : <strong>${escapeHtml(session.lastMessage?.text || '—')}</strong></div>
                     </div>
 
                     ${pairing}
 
                     <div class="session-actions">
                         <button class="ghost-button" data-send-session="${escapeHtml(session.sessionId)}">Envoyer</button>
-                        <button class="danger-button" data-delete-session="${escapeHtml(session.sessionId)}">DÃ©connecter</button>
+                        <button class="danger-button" data-delete-session="${escapeHtml(session.sessionId)}">Déconnecter</button>
                     </div>
                 </article>
             `;
@@ -114,7 +114,7 @@ function renderSessions() {
     select.innerHTML =
         '<option value="">Choisir une session</option>' +
         state.sessions.map(s =>
-            `<option value="${escapeHtml(s.sessionId)}">${escapeHtml(s.sessionId)} â€” ${escapeHtml(statusLabel(s.status))}</option>`
+            `<option value="${escapeHtml(s.sessionId)}">${escapeHtml(s.sessionId)} — ${escapeHtml(statusLabel(s.status))}</option>`
         ).join('');
 
     if (state.sessions.some(s => s.sessionId === current)) {
@@ -128,13 +128,13 @@ function renderMessages() {
     const list = $('#messageList');
 
     if (!state.messages.length) {
-        list.innerHTML = '<div class="empty">Aucun message reÃ§u.</div>';
+        list.innerHTML = '<div class="empty">Aucun message reçu.</div>';
         return;
     }
 
     list.innerHTML = state.messages.slice(-100).reverse().map(item => `
         <div class="message-item">
-            <div><strong>${escapeHtml(item.jid)}</strong> â€” ${escapeHtml(item.sessionId)}</div>
+            <div><strong>${escapeHtml(item.jid)}</strong> — ${escapeHtml(item.sessionId)}</div>
             <div>${escapeHtml(item.text)}</div>
             <small>${escapeHtml(new Date(item.at).toLocaleString())}</small>
         </div>
@@ -184,12 +184,12 @@ async function refresh() {
         ]);
 
         $('#apiDot').classList.add('ok');
-        $('#apiStatus').textContent = 'API connectÃ©e';
+        $('#apiStatus').textContent = 'API connectée';
         $('#uptime').textContent = formatUptime(health.uptime);
 
         state.sessions = sessions.sessions || [];
         renderSessions();
-        addLog('DonnÃ©es du dashboard actualisÃ©es.');
+        addLog('Données du dashboard actualisées.');
     } catch (error) {
         $('#apiDot').classList.remove('ok');
         $('#apiStatus').textContent = 'API indisponible';
@@ -198,21 +198,21 @@ async function refresh() {
 }
 
 function connectEvents() {
-    const events = new EventSource('/events?token=' + encodeURIComponent(getAuthToken()));
+    const events = new EventSource('/events');
 
     events.addEventListener('session', event => {
         const session = JSON.parse(event.data);
         applySession(session);
-        addActivity(`${session.sessionId} â†’ ${statusLabel(session.status)}`);
-        addLog(`${session.sessionId} â†’ ${statusLabel(session.status)}`);
+        addActivity(`${session.sessionId} → ${statusLabel(session.status)}`);
+        addLog(`${session.sessionId} → ${statusLabel(session.status)}`);
     });
 
     events.addEventListener('session_removed', event => {
         const { sessionId } = JSON.parse(event.data);
         state.sessions = state.sessions.filter(s => s.sessionId !== sessionId);
         renderSessions();
-        addActivity(`${sessionId} â†’ session supprimÃ©e`);
-        addLog(`${sessionId} â†’ session supprimÃ©e`);
+        addActivity(`${sessionId} → session supprimée`);
+        addLog(`${sessionId} → session supprimée`);
     });
 
     events.addEventListener('pairing', event => {
@@ -227,23 +227,23 @@ function connectEvents() {
         $('#pairingCode').textContent = data.code;
         $('#pairingResult').classList.remove('hidden');
 
-        addActivity(`${data.sessionId} â†’ code de liaison reÃ§u`);
-        addLog(`${data.sessionId} â†’ code de liaison : ${data.code}`);
-        toast('Code de liaison reÃ§u.');
+        addActivity(`${data.sessionId} → code de liaison reçu`);
+        addLog(`${data.sessionId} → code de liaison : ${data.code}`);
+        toast('Code de liaison reçu.');
     });
 
     events.addEventListener('message', event => {
         const data = JSON.parse(event.data);
         state.messages.push(data);
         renderMessages();
-        addActivity(`${data.sessionId} â† ${data.jid} : ${data.text}`);
-        addLog(`${data.sessionId} â† ${data.jid} : ${data.text}`);
+        addActivity(`${data.sessionId} ← ${data.jid} : ${data.text}`);
+        addLog(`${data.sessionId} ← ${data.jid} : ${data.text}`);
     });
 
     events.addEventListener('message_sent', event => {
         const data = JSON.parse(event.data);
-        addActivity(`${data.sessionId} â†’ ${data.jid} : message envoyÃ©`);
-        addLog(`${data.sessionId} â†’ ${data.jid} : message envoyÃ©`);
+        addActivity(`${data.sessionId} → ${data.jid} : message envoyé`);
+        addLog(`${data.sessionId} → ${data.jid} : message envoyé`);
     });
 
     events.addEventListener('log', event => {
@@ -257,7 +257,7 @@ function connectEvents() {
     };
 
     events.onopen = () => {
-        $('#apiStatus').textContent = 'API connectÃ©e';
+        $('#apiStatus').textContent = 'API connectée';
         $('#apiDot').classList.add('ok');
     };
 }
@@ -293,7 +293,7 @@ $('#addSessionForm').addEventListener('submit', async event => {
         }
 
         $('#phoneNumber').value = '';
-        toast('Session crÃ©Ã©e. Attends le code de liaison.');
+        toast('Session créée. Attends le code de liaison.');
     } catch (error) {
         toast(error.message);
     }
@@ -317,7 +317,7 @@ $('#sendMessageForm').addEventListener('submit', async event => {
         });
 
         $('#sendText').value = '';
-        toast('Message envoyÃ©.');
+        toast('Message envoyé.');
     } catch (error) {
         toast(error.message);
     }
@@ -340,7 +340,7 @@ $('#sessionsGrid').addEventListener('click', async event => {
             await api(`/api/sessions/${encodeURIComponent(sessionId)}`, {
                 method: 'DELETE'
             });
-            toast('Session dÃ©connectÃ©e.');
+            toast('Session déconnectée.');
         } catch (error) {
             toast(error.message);
         }
@@ -355,4 +355,3 @@ $('#clearLogs').addEventListener('click', () => {
 connectEvents();
 refresh();
 setInterval(refresh, 10000);
-
