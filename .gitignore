@@ -1,0 +1,6 @@
+﻿node_modules/
+src/sessions/
+*.log
+.env
+node_modules/
+src/sessions/
