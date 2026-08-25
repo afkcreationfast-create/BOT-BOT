@@ -592,13 +592,6 @@ broadcast('pairing', {
                 return;
             }
 
-            broadcast('message', {
-                sessionId,
-                jid,
-                text,
-                at: new Date().toISOString()
-            });
-
             console.log(
                 `[${sessionId}] ${jid}: ${text}`
             );
@@ -1212,7 +1205,6 @@ start().catch(
         );
     }
 );
-
 
 
 

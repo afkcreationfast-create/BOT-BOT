@@ -176,24 +176,7 @@ async function createSession(
     phoneNumber = null
 ) {
     if (sessions.has(sessionId)) {
-
-        const existingSock =
-            sessions.get(sessionId);
-
-        if (existingSock?.user) {
-
-            console.log(
-                `[SESSION] ${sessionId} déjà connectée. Réutilisation.`
-            );
-
-            return existingSock;
-        }
-
-        console.log(
-            `[SESSION] ${sessionId} existe mais n'est pas connectée. Nouvelle tentative.`
-        );
-
-        sessions.delete(sessionId);
+        return sessions.get(sessionId);
     }
 
     const sessionPath =
@@ -333,6 +316,10 @@ async function createSession(
                 'close'
             ) {
 
+                sessions.delete(
+                    sessionId
+                );
+
                 const statusCode =
                     lastDisconnect
                         ?.error
@@ -343,141 +330,37 @@ async function createSession(
                     `[${sessionId}] Connexion fermée. Code: ${statusCode || 'inconnu'}`
                 );
 
-                /*
-                 * ==========================================
-                 * CAS 1 : 515
-                 * ==========================================
-                 *
-                 * WhatsApp demande un redémarrage interne.
-                 *
-                 * Ce n'est PAS une vraie déconnexion.
-                 * La session doit donc être conservée.
-                 */
                 if (
                     statusCode ===
-                    DisconnectReason.restartRequired
+                    DisconnectReason.loggedOut
                 ) {
 
                     console.log(
-                        `[${sessionId}] Redémarrage interne WhatsApp (515).`
-                    );
-
-                    console.log(
-                        `[${sessionId}] Session conservée. Recréation du socket...`
-                    );
-
-                    sessions.delete(
-                        sessionId
-                    );
-
-                    setTimeout(
-                        () => {
-
-                            if (
-                                !sessions.has(
-                                    sessionId
-                                )
-                            ) {
-
-                                createSession(
-                                    sessionId,
-                                    phoneNumber
-                                ).catch(
-                                    error => {
-
-                                        console.error(
-                                            `[${sessionId}] Erreur recréation socket:`,
-                                            error.message
-                                        );
-
-                                    }
-                                );
-
-                            }
-
-                        },
-                        1000
+                        `[${sessionId}] Session déconnectée.`
                     );
 
                     return;
                 }
 
-                /*
-                 * ==========================================
-                 * CAS 2 : VRAIE DÉCONNEXION
-                 * ==========================================
-                 *
-                 * Tous les autres codes sont considérés
-                 * comme une vraie fin de session.
-                 *
-                 * La session est supprimée :
-                 *
-                 * 1. de la Map en mémoire
-                 * 2. du disque
-                 *
-                 * AUCUNE reconnexion automatique.
-                 */
-
-                sessions.delete(
-                    sessionId
-                );
-
-                const sessionPath =
-                    path.join(
-                        config.sessionDirectory,
-                        sessionId
+                if (!state.creds.registered) {
+                    console.log(
+                        `[${sessionId}] Pairing non terminé. Pas de reconnexion automatique.`
                     );
-
-                console.log(
-                    `[${sessionId}] Vraie déconnexion détectée.`
-                );
-
-                console.log(
-                    `[${sessionId}] Suppression définitive de la session...`
-                );
-
-                try {
-
-                    if (
-                        fs.existsSync(
-                            sessionPath
-                        )
-                    ) {
-
-                        fs.rmSync(
-                            sessionPath,
-                            {
-                                recursive: true,
-                                force: true
-                            }
-                        );
-
-                        console.log(
-                            `[${sessionId}] Session supprimée du disque.`
-                        );
-
-                    } else {
-
-                        console.log(
-                            `[${sessionId}] Dossier de session déjà absent.`
-                        );
-
-                    }
-
-                } catch (error) {
-
-                    console.error(
-                        `[${sessionId}] Erreur suppression session:`,
-                        error.message
-                    );
-
+                    return;
                 }
 
                 console.log(
-                    `[${sessionId}] Aucune reconnexion automatique.`
+                    `[${sessionId}] Reconnexion dans 5 secondes...`
                 );
 
-                return;
+                setTimeout(
+                    () => {
+                        if (!sessions.has(sessionId)) {
+                            createSession(sessionId);
+                        }
+                    },
+                    5000
+                );
             }
         }
     );
@@ -592,28 +475,14 @@ broadcast('pairing', {
                 return;
             }
 
-            broadcast('message', {
-                sessionId,
-                jid,
-                text,
-                at: new Date().toISOString()
-            });
-
             console.log(
                 `[${sessionId}] ${jid}: ${text}`
             );
 
-            const parts =
+            const command =
                 text
                     .trim()
-                    .split(/\s+/);
-
-            const command =
-                (parts[0] || '')
                     .toLowerCase();
-
-            const args =
-                parts.slice(1);
 
             /*
              * ==========================
@@ -1212,18 +1081,6 @@ start().catch(
         );
     }
 );
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

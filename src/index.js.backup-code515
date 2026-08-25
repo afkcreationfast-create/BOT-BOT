@@ -333,91 +333,6 @@ async function createSession(
                 'close'
             ) {
 
-                const statusCode =
-                    lastDisconnect
-                        ?.error
-                        ?.output
-                        ?.statusCode;
-
-                console.log(
-                    `[${sessionId}] Connexion fermée. Code: ${statusCode || 'inconnu'}`
-                );
-
-                /*
-                 * ==========================================
-                 * CAS 1 : 515
-                 * ==========================================
-                 *
-                 * WhatsApp demande un redémarrage interne.
-                 *
-                 * Ce n'est PAS une vraie déconnexion.
-                 * La session doit donc être conservée.
-                 */
-                if (
-                    statusCode ===
-                    DisconnectReason.restartRequired
-                ) {
-
-                    console.log(
-                        `[${sessionId}] Redémarrage interne WhatsApp (515).`
-                    );
-
-                    console.log(
-                        `[${sessionId}] Session conservée. Recréation du socket...`
-                    );
-
-                    sessions.delete(
-                        sessionId
-                    );
-
-                    setTimeout(
-                        () => {
-
-                            if (
-                                !sessions.has(
-                                    sessionId
-                                )
-                            ) {
-
-                                createSession(
-                                    sessionId,
-                                    phoneNumber
-                                ).catch(
-                                    error => {
-
-                                        console.error(
-                                            `[${sessionId}] Erreur recréation socket:`,
-                                            error.message
-                                        );
-
-                                    }
-                                );
-
-                            }
-
-                        },
-                        1000
-                    );
-
-                    return;
-                }
-
-                /*
-                 * ==========================================
-                 * CAS 2 : VRAIE DÉCONNEXION
-                 * ==========================================
-                 *
-                 * Tous les autres codes sont considérés
-                 * comme une vraie fin de session.
-                 *
-                 * La session est supprimée :
-                 *
-                 * 1. de la Map en mémoire
-                 * 2. du disque
-                 *
-                 * AUCUNE reconnexion automatique.
-                 */
-
                 sessions.delete(
                     sessionId
                 );
@@ -428,12 +343,18 @@ async function createSession(
                         sessionId
                     );
 
+                const statusCode =
+                    lastDisconnect
+                        ?.error
+                        ?.output
+                        ?.statusCode;
+
                 console.log(
-                    `[${sessionId}] Vraie déconnexion détectée.`
+                    `[${sessionId}] Connexion fermée. Code: ${statusCode || 'inconnu'}`
                 );
 
                 console.log(
-                    `[${sessionId}] Suppression définitive de la session...`
+                    `[${sessionId}] Suppression de la session...`
                 );
 
                 try {
@@ -455,22 +376,14 @@ async function createSession(
                         console.log(
                             `[${sessionId}] Session supprimée du disque.`
                         );
-
-                    } else {
-
-                        console.log(
-                            `[${sessionId}] Dossier de session déjà absent.`
-                        );
-
                     }
 
                 } catch (error) {
 
                     console.error(
-                        `[${sessionId}] Erreur suppression session:`,
+                        `[${sessionId}] Erreur lors de la suppression:`,
                         error.message
                     );
-
                 }
 
                 console.log(
@@ -591,13 +504,6 @@ broadcast('pairing', {
             if (!text) {
                 return;
             }
-
-            broadcast('message', {
-                sessionId,
-                jid,
-                text,
-                at: new Date().toISOString()
-            });
 
             console.log(
                 `[${sessionId}] ${jid}: ${text}`
@@ -1212,13 +1118,6 @@ start().catch(
         );
     }
 );
-
-
-
-
-
-
-
 
 
 
